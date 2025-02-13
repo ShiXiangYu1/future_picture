@@ -2,18 +2,15 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Paper, CircularProgress, Typography, Grid, useTheme, useMediaQuery } from '@mui/material';
-import { collection, query, orderBy, limit, onSnapshot, addDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import ImageGenerator from '../components/ImageGenerator';
 import AIToolLayout from '../components/AIToolLayout';
 import Link from 'next/link';
-
-// 删除 Head 和 Metadata 相关的导入和导出
 
 interface HistoryItem {
   id: string;
   originalPrompt: string;
   imageUrl: string;
+  createdAt: number;
 }
 
 const AIImageGeneratorPage: React.FC = () => {
@@ -24,39 +21,38 @@ const AIImageGeneratorPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // 从localStorage加载历史记录
   useEffect(() => {
-    const q = query(collection(db, 'imageHistory'), orderBy('createdAt', 'desc'), limit(10));
-    const unsubscribe = onSnapshot(q, 
-      (querySnapshot) => {
-        const historyItems: HistoryItem[] = [];
-        querySnapshot.forEach((doc) => {
-          historyItems.push({ id: doc.id, ...doc.data() } as HistoryItem);
-        });
-        setHistory(historyItems);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching history: ", err);
-        setError("加载历史记录时出错");
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
-
-  const addToHistory = useCallback(async (item: Omit<HistoryItem, 'id'>) => {
     try {
-      const docRef = await addDoc(collection(db, 'imageHistory'), {
-        ...item,
-        createdAt: new Date()
-      });
-      return docRef.id;
-    } catch (error) {
-      console.error('Error adding document: ', error);
-      setError("添加到历史记录时出错");
+      const savedHistory = localStorage.getItem('imageHistory');
+      if (savedHistory) {
+        const parsedHistory = JSON.parse(savedHistory);
+        setHistory(parsedHistory);
+      }
+    } catch (err) {
+      console.error("Error loading history: ", err);
+      setError("加载历史记录时出错");
     }
+    setLoading(false);
   }, []);
+
+  const addToHistory = useCallback(async (item: Omit<HistoryItem, 'id' | 'createdAt'>) => {
+    try {
+      const newItem = {
+        ...item,
+        id: Date.now().toString(),
+        createdAt: Date.now()
+      };
+      const updatedHistory = [newItem, ...history].slice(0, 10); // 只保留最新的10条记录
+      setHistory(updatedHistory);
+      localStorage.setItem('imageHistory', JSON.stringify(updatedHistory));
+      return newItem.id;
+    } catch (error) {
+      console.error('Error adding to history: ', error);
+      setError("添加到历史记录时出错");
+      return undefined;
+    }
+  }, [history]);
 
   const truncatePrompt = (prompt: string) => {
     const words = prompt.split(/\s+/);
@@ -79,20 +75,23 @@ const AIImageGeneratorPage: React.FC = () => {
             display: 'flex', 
             flexDirection: 'column',
             cursor: 'pointer',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transform: 'translateY(-4px)',
             },
-            width: '100%', // 使用100%宽度以适应不同屏幕尺寸
-            maxWidth: '256px', // 最大宽度仍然保持为256px
-            margin: '0 auto', // 居中显示
+            width: '100%',
+            maxWidth: '256px',
+            margin: '0 auto',
           }}>
             <Box sx={{ 
               width: '100%', 
-              paddingTop: '100%', // 保持1:1的宽高比
+              paddingTop: '100%',
               position: 'relative', 
               overflow: 'hidden',
               marginBottom: '8px',
-              backgroundColor: '#f0f0f0',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '4px',
             }}>
               <img 
                 src={item.imageUrl} 
@@ -115,12 +114,13 @@ const AIImageGeneratorPage: React.FC = () => {
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 hyphens: 'auto',
-                maxHeight: '3em', // 限制最多显示两行
+                maxHeight: '3em',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
+                color: '#333',
               }}
               title={item.originalPrompt}
             >
@@ -165,6 +165,8 @@ const AIImageGeneratorPage: React.FC = () => {
         width: '100%', 
         boxSizing: 'border-box',
         mb: 4,
+        background: 'linear-gradient(145deg, #ffffff, #f8f9fa)',
+        borderRadius: '12px',
       }}>
         <ImageGenerator onGenerate={addToHistory} />
       </Paper>
@@ -173,13 +175,26 @@ const AIImageGeneratorPage: React.FC = () => {
         overflowX: 'hidden',
       }}>
         {loading ? (
-          <CircularProgress />
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
         ) : error ? (
-          <Typography color="error">{error}</Typography>
+          <Typography color="error" sx={{ p: 2 }}>{error}</Typography>
         ) : (
           <Box>
-            <Typography variant="h6" gutterBottom>生成历史</Typography>
-            <Grid container spacing={2} justifyContent="center">
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                borderBottom: '2px solid #e0e0e0',
+                pb: 1,
+                mb: 3,
+                color: '#2c3e50',
+              }}
+            >
+              生成历史
+            </Typography>
+            <Grid container spacing={3} justifyContent="center">
               {memoizedHistory}
             </Grid>
           </Box>

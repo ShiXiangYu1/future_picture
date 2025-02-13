@@ -218,9 +218,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           sx={{
             width: '100%',
             height: '42px',
-            backgroundColor: '#00a1d6',
+            backgroundColor: '#FB7299',
             '&:hover': {
-              backgroundColor: '#00b5e5',
+              backgroundColor: '#fc8bab',
             },
             borderRadius: '21px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',

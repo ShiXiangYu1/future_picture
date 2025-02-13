@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RemoveBgError, removeBackgroundFromImageFile } from "remove.bg";
 
 // 使用 Redis 或其他数据库来存储使用次数
 let monthlyUsage = 0;
@@ -31,37 +30,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '未找到图片' }, { status: 400 });
     }
 
-    const imageBuffer = Buffer.from(await image.arrayBuffer());
-
     try {
-      const result = await removeBackgroundFromImageFile({
-        file: imageBuffer,
-        apiKey: apiKey || process.env.REMOVE_BG_API_KEY || '',
-        size: 'regular',
-        type: 'auto',
-      });
+      const apiFormData = new FormData();
+      apiFormData.append('image_file', image);
+      apiFormData.append('size', 'regular');
 
-      // 增加使用次数
-      monthlyUsage++;
-
-      return new NextResponse(result.base64img, {
+      const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+        method: 'POST',
         headers: {
-          'Content-Type': 'image/png',
+          'X-Api-Key': apiKey || process.env.REMOVE_BG_API_KEY || '',
         },
+        body: apiFormData,
       });
-    } catch (error) {
-      if (error instanceof RemoveBgError) {
-        console.error('remove.bg error:', error);
-        // API 限制错误
-        if (error.statusCode === 402) {
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 402) {
           return NextResponse.json({
             error: 'API 使用次数已达上限',
             message: '建议：\n1. 使用自己的 API Key\n2. 升级到付费版本以获得更多次数',
             link: 'https://www.remove.bg/pricing'
           }, { status: 402 });
         }
+        throw new Error(errorData.message || '处理图片时出错');
       }
-      throw error;
+
+      // 增加使用次数
+      monthlyUsage++;
+
+      const resultBuffer = await response.arrayBuffer();
+      return new NextResponse(resultBuffer, {
+        headers: {
+          'Content-Type': 'image/png',
+        },
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      return NextResponse.json({ 
+        error: '处理图片时出错: ' + (error as Error).message 
+      }, { status: 500 });
     }
   } catch (error) {
     console.error('Error processing image:', error);

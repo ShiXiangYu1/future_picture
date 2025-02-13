@@ -2,11 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
 import CloudConvert from 'cloudconvert';
+import { PassThrough } from 'stream';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
+// 检查 API key 是否存在
+const CLOUDCONVERT_API_KEY = process.env.CLOUDCONVERT_API_KEY;
+if (!CLOUDCONVERT_API_KEY) {
+  throw new Error('CloudConvert API key is not set');
+}
+
 // 初始化 CloudConvert
-const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY);
+const cloudConvert = new CloudConvert(CLOUDCONVERT_API_KEY);
+
+// Buffer 转换为 Stream
+function bufferToStream(buffer: Buffer) {
+  const stream = new PassThrough();
+  stream.end(buffer);
+  return stream;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,19 +89,32 @@ export async function POST(req: NextRequest) {
         });
 
         // 上传文件
-        const uploadTask = job.tasks.filter(task => task.operation === 'import/upload')[0];
-        const inputFile = Buffer.from(buffer);
-        await cloudConvert.tasks.upload(uploadTask, inputFile, 'document.pdf');
+        const uploadTask = job.tasks.find(task => task.operation === 'import/upload');
+        if (!uploadTask) {
+          throw new Error('Failed to create upload task');
+        }
+
+        const stream = bufferToStream(buffer);
+        await cloudConvert.tasks.upload(uploadTask, stream, 'document.pdf');
 
         // 等待任务完成
         const jobResult = await cloudConvert.jobs.wait(job.id);
         
         // 获取导出任务
-        const exportTask = jobResult.tasks.filter(task => task.operation === 'export/url')[0];
-        const file = exportTask.result.files[0];
+        const exportTask = jobResult.tasks.find(task => 
+          task.operation === 'export/url' && task.result?.files?.[0]?.url
+        );
+
+        if (!exportTask?.result?.files?.[0]?.url) {
+          throw new Error('Export task failed to produce a file URL');
+        }
         
         // 下载转换后的文件
-        const response = await fetch(file.url);
+        const response = await fetch(exportTask.result.files[0].url);
+        if (!response.ok) {
+          throw new Error('Failed to download converted file');
+        }
+
         convertedBuffer = Buffer.from(await response.arrayBuffer());
       } catch (error) {
         console.error('CloudConvert error:', error);

@@ -3,13 +3,14 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { TextField, Box, Typography, Slider, Select, MenuItem, Grid, Paper, Switch, FormControlLabel, Button, Tabs, Tab, Tooltip, Link, Alert, IconButton, Container } from '@mui/material';
+import { TextField, Box, Typography, Slider, Select, MenuItem, Grid, Paper, Switch, FormControlLabel, Button, Tabs, Tab, Tooltip, Link, Alert, IconButton } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import InfoIcon from '@mui/icons-material/Info';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import debounce from 'lodash/debounce';
 import Image from 'next/image';
+import { getApiUrl } from '@/utils/serviceDiscovery';
 
 type ColorScheme = {
   name: string;
@@ -265,15 +266,15 @@ export default function TextBehindSubject() {
         formData.append('image', file);
         formData.append('api_key', removeBgApiKey);
 
-        const response = await fetch('/api/text-behind-subject', {
+        const apiUrl = await getApiUrl('textBehindSubject');
+        const response = await fetch(apiUrl, {
           method: 'POST',
           body: formData,
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          if (response.status === 429 || response.status === 402) {
-            // 显示友好的错误提示
+          if (response.status === 402) {
             alert(`${errorData.error}\n\n${errorData.message}\n\n详情请访问：${errorData.link}`);
           } else {
             throw new Error(errorData.error || '处理图像时出错');
@@ -367,266 +368,254 @@ export default function TextBehindSubject() {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          人物主体背景文字生成器
+    <Box sx={{ 
+      maxWidth: 1200, 
+      margin: 'auto', 
+      padding: 2, 
+      fontFamily: 'Indie Flower',
+      background: 'linear-gradient(to right bottom, #ffffff, #f0f0f0)',
+      borderRadius: 2,
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+        <Image src="/images/text-behind-object.svg" alt="Text Behind Object Logo" width={40} height={40} />
+        <Typography variant="h3" sx={{ ml: 2, textAlign: 'center', color: '#14213D', fontWeight: 'light' }}>
+          Text Behind Object
         </Typography>
-        
-        <Alert severity="info" sx={{ mb: 2 }}>
-          注意：使用免费 API 每月限制 50 次调用。建议设置自己的 API Key 以获得更多使用次数。
-        </Alert>
+      </Box>
+      
+      <Alert severity="info" sx={{ mb: 4 }}>
+        这个工具可以帮助你创建文字在物体后面的效果。上传一张图片，输入文字，然后调整设置来创建你想要的效果。
+      </Alert>
 
-        <Box sx={{ 
-          maxWidth: 1200, 
-          margin: 'auto', 
-          padding: 2, 
-          fontFamily: 'Indie Flower',
-          background: 'linear-gradient(to right bottom, #ffffff, #f0f0f0)',
-          borderRadius: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-            <Image src="/images/text-behind-object.svg" alt="Text Behind Object Logo" width={40} height={40} />
-            <Typography variant="h3" sx={{ ml: 2, textAlign: 'center', color: '#14213D', fontWeight: 'light' }}>
-              Text Behind Object
-            </Typography>
-          </Box>
-          
-          <Alert severity="info" sx={{ mb: 4 }}>
-            这个工具可以帮助你创建文字在物体后面的效果。上传一张图片，输入文字，然后调整设置来创建你想要的效果。
-          </Alert>
+      <Box sx={{ mb: 4, p: 2, backgroundColor: '#f0f0f0', borderRadius: 2 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Remove.bg API Key 设置
+          <Tooltip title="如果您没有设置 API key，将使用默认的 key。但是默认 key 可能会用完额度。建议使用自己的 API key。" arrow>
+            <InfoIcon sx={{ ml: 1, verticalAlign: 'middle', fontSize: 20 }} />
+          </Tooltip>
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <TextField
+            label="Remove.bg API Key"
+            value={isApiKeyEditable ? removeBgApiKey : savedApiKey}
+            onChange={(e) => setRemoveBgApiKey(e.target.value)}
+            fullWidth
+            margin="dense"
+            disabled={!isApiKeyEditable}
+            type={isApiKeyEditable ? "text" : "password"}
+            InputProps={{
+              endAdornment: (
+                <IconButton
+                  onClick={() => setIsApiKeyEditable(!isApiKeyEditable)}
+                  edge="end"
+                >
+                  {isApiKeyEditable ? <SaveIcon /> : <EditIcon />}
+                </IconButton>
+              ),
+            }}
+          />
+          <Button
+            variant="contained"
+            onClick={() => {
+              setSavedApiKey(removeBgApiKey);
+              setIsApiKeyEditable(false);
+            }}
+            disabled={!isApiKeyEditable || !removeBgApiKey}
+            sx={{ ml: 1, height: '56px' }}
+          >
+            保存
+          </Button>
+        </Box>
+        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+          获取 API key: {' '}
+          <Link href="https://www.remove.bg/api" target="_blank" rel="noopener noreferrer">
+            https://www.remove.bg/api
+          </Link>
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+          提示：本功能需要使用remove.bg的API，请自行设置，每个用户可以从 remove.bg 获得 50 次免费的 API 使用权益。
+        </Typography>
+      </Box>
 
-          <Box sx={{ mb: 4, p: 2, backgroundColor: '#f0f0f0', borderRadius: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Remove.bg API Key 设置
-              <Tooltip title="如果您没有设置 API key，将使用默认的 key。但是默认 key 可能会用完额度。建议使用自己的 API key。" arrow>
-                <InfoIcon sx={{ ml: 1, verticalAlign: 'middle', fontSize: 20 }} />
-              </Tooltip>
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <TextField
-                label="Remove.bg API Key"
-                value={isApiKeyEditable ? removeBgApiKey : savedApiKey}
-                onChange={(e) => setRemoveBgApiKey(e.target.value)}
-                fullWidth
-                margin="dense"
-                disabled={!isApiKeyEditable}
-                type={isApiKeyEditable ? "text" : "password"}
-                InputProps={{
-                  endAdornment: (
-                    <IconButton
-                      onClick={() => setIsApiKeyEditable(!isApiKeyEditable)}
-                      edge="end"
-                    >
-                      {isApiKeyEditable ? <SaveIcon /> : <EditIcon />}
-                    </IconButton>
-                  ),
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'light' }}>图片上传</Typography>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="raised-button-file"
+              type="file"
+              onChange={handleImageUpload}
+            />
+            <label htmlFor="raised-button-file">
+              <Box
+                sx={{
+                  border: '2px dashed #9e9e9e',
+                  borderRadius: 2,
+                  padding: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#1976d2',
+                  },
                 }}
-              />
+              >
+                <Typography>点击或拖拽上传图片</Typography>
+              </Box>
+            </label>
+            <TextField
+              label="输入要添加的文字"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              fullWidth
+              margin="normal"
+              multiline
+              rows={3}
+              sx={{ fontFamily: 'inherit' }}
+            />
+            <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>字体选择</Typography>
+            <Select
+              value={font}
+              onChange={(e) => setFont(e.target.value)}
+              fullWidth
+              margin="dense"
+              sx={{ fontFamily: 'inherit' }}
+            >
+              {fonts.map((f) => (
+                <MenuItem key={f} value={f} style={{ fontFamily: f }}>
+                  <span style={{ fontFamily: f }}>{f}</span>
+                </MenuItem>
+              ))}
+            </Select>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isBold}
+                  onChange={(e) => setIsBold(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="加粗文字"
+              sx={{ mt: 2 }}
+            />
+
+            <ColorSchemeSelector 
+              colorSchemeType={colorSchemeType}
+              setColorSchemeType={setColorSchemeType}
+              gradientColors={gradientColors}
+              setGradientColors={setGradientColors}
+              customColor={customColor}
+              setCustomColor={setCustomColor}
+            />
+
+            <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字不透明度</Typography>
+            <Slider
+              value={textOpacity}
+              onChange={(_, newValue) => setTextOpacity(newValue as number)}
+              min={0}
+              max={1}
+              step={0.01}
+              sx={{ color: '#14213D' }}
+            />
+            <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字大小</Typography>
+            <Slider
+              value={textSize}
+              onChange={(_, newValue) => setTextSize(newValue as number)}
+              min={5}  // 可以考虑将最小值也减小
+              max={50} // 将最大值从 100 减少到 50
+              step={1}
+              sx={{ color: '#14213D' }}
+            />
+            <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字位置 X</Typography>
+            <Slider
+              value={textPositionX}
+              onChange={(_, newValue) => setTextPositionX(newValue as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ color: '#14213D' }}
+            />
+            <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字位置 Y</Typography>
+            <Slider
+              value={textPositionY}
+              onChange={(_, newValue) => setTextPositionY(newValue as number)}
+              min={0}
+              max={100}
+              step={1}
+              sx={{ color: '#14213D' }}
+            />
+
+            {result && (
               <Button
                 variant="contained"
-                onClick={() => {
-                  setSavedApiKey(removeBgApiKey);
-                  setIsApiKeyEditable(false);
+                startIcon={<DownloadIcon />}
+                onClick={handleDownload}
+                sx={{ 
+                  mt: 'auto',
+                  backgroundColor: '#14213D', 
+                  '&:hover': { backgroundColor: '#233a66' } 
                 }}
-                disabled={!isApiKeyEditable || !removeBgApiKey}
-                sx={{ ml: 1, height: '56px' }}
               >
-                保存
+                下载图片
               </Button>
+            )}
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={8}>
+          <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {result ? (
+              <img src={result} alt="处理后的图片" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            ) : imagePreview ? (
+              <img src={imagePreview} alt="预览图" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            ) : (
+              <Typography variant="body1" color="textSecondary" sx={{ fontFamily: 'inherit', fontStyle: 'italic' }}>请上传图片并输入文字</Typography>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', color: '#14213D', fontWeight: 'light' }}>
+          示例图片
+        </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          justifyContent: 'space-between',
+          gap: 2,
+        }}>
+          {['paris', 'newyork', 'kyoto', 'budapest'].map((city) => (
+            <Box 
+              key={city} 
+              sx={{ 
+                width: 'calc(50% - 8px)', // 每行两张图片，减去间隔
+                marginBottom: 2,
+                '@media (max-width: 600px)': {
+                  width: '100%', // 在小屏幕上每行一张图片
+                },
+              }}
+            >
+              <Image
+                src={`/images/${city}.jpg`}
+                alt={`${city} example`}
+                width={600}
+                height={400}
+                style={{ 
+                  width: '100%', 
+                  height: 'auto', 
+                  objectFit: 'cover', 
+                  borderRadius: '8px',
+                }}
+              />
             </Box>
-            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-              获取 API key: {' '}
-              <Link href="https://www.remove.bg/api" target="_blank" rel="noopener noreferrer">
-                https://www.remove.bg/api
-              </Link>
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-              提示：本功能需要使用remove.bg的API，请自行设置，每个用户可以从 remove.bg 获得 50 次免费的 API 使用权益。
-            </Typography>
-          </Box>
-
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'light' }}>图片上传</Typography>
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="raised-button-file"
-                  type="file"
-                  onChange={handleImageUpload}
-                />
-                <label htmlFor="raised-button-file">
-                  <Box
-                    sx={{
-                      border: '2px dashed #9e9e9e',
-                      borderRadius: 2,
-                      padding: 2,
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        borderColor: '#1976d2',
-                      },
-                    }}
-                  >
-                    <Typography>点击或拖拽上传图片</Typography>
-                  </Box>
-                </label>
-                <TextField
-                  label="输入要添加的文字"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  fullWidth
-                  margin="normal"
-                  multiline
-                  rows={3}
-                  sx={{ fontFamily: 'inherit' }}
-                />
-                <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>字体选择</Typography>
-                <Select
-                  value={font}
-                  onChange={(e) => setFont(e.target.value)}
-                  fullWidth
-                  margin="dense"
-                  sx={{ fontFamily: 'inherit' }}
-                >
-                  {fonts.map((f) => (
-                    <MenuItem key={f} value={f} style={{ fontFamily: f }}>
-                      <span style={{ fontFamily: f }}>{f}</span>
-                    </MenuItem>
-                  ))}
-                </Select>
-
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={isBold}
-                      onChange={(e) => setIsBold(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label="加粗文字"
-                  sx={{ mt: 2 }}
-                />
-
-                <ColorSchemeSelector 
-                  colorSchemeType={colorSchemeType}
-                  setColorSchemeType={setColorSchemeType}
-                  gradientColors={gradientColors}
-                  setGradientColors={setGradientColors}
-                  customColor={customColor}
-                  setCustomColor={setCustomColor}
-                />
-
-                <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字不透明度</Typography>
-                <Slider
-                  value={textOpacity}
-                  onChange={(_, newValue) => setTextOpacity(newValue as number)}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  sx={{ color: '#14213D' }}
-                />
-                <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字大小</Typography>
-                <Slider
-                  value={textSize}
-                  onChange={(_, newValue) => setTextSize(newValue as number)}
-                  min={5}  // 可以考虑将最小值也减小
-                  max={50} // 将最大值从 100 减少到 50
-                  step={1}
-                  sx={{ color: '#14213D' }}
-                />
-                <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字位置 X</Typography>
-                <Slider
-                  value={textPositionX}
-                  onChange={(_, newValue) => setTextPositionX(newValue as number)}
-                  min={0}
-                  max={100}
-                  step={1}
-                  sx={{ color: '#14213D' }}
-                />
-                <Typography gutterBottom sx={{ mt: 2, fontWeight: 'light' }}>文字位置 Y</Typography>
-                <Slider
-                  value={textPositionY}
-                  onChange={(_, newValue) => setTextPositionY(newValue as number)}
-                  min={0}
-                  max={100}
-                  step={1}
-                  sx={{ color: '#14213D' }}
-                />
-
-                {result && (
-                  <Button
-                    variant="contained"
-                    startIcon={<DownloadIcon />}
-                    onClick={handleDownload}
-                    sx={{ 
-                      mt: 'auto',
-                      backgroundColor: '#14213D', 
-                      '&:hover': { backgroundColor: '#233a66' } 
-                    }}
-                  >
-                    下载图片
-                  </Button>
-                )}
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {result ? (
-                  <img src={result} alt="处理后的图片" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : imagePreview ? (
-                  <img src={imagePreview} alt="预览图" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <Typography variant="body1" color="textSecondary" sx={{ fontFamily: 'inherit', fontStyle: 'italic' }}>请上传图片并输入文字</Typography>
-                )}
-              </Paper>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', color: '#14213D', fontWeight: 'light' }}>
-              示例图片
-            </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              justifyContent: 'space-between',
-              gap: 2,
-            }}>
-              {['paris', 'newyork', 'kyoto', 'budapest'].map((city) => (
-                <Box 
-                  key={city} 
-                  sx={{ 
-                    width: 'calc(50% - 8px)', // 每行两张图片，减去间隔
-                    marginBottom: 2,
-                    '@media (max-width: 600px)': {
-                      width: '100%', // 在小屏幕上每行一张图片
-                    },
-                  }}
-                >
-                  <Image
-                    src={`/images/${city}.jpg`}
-                    alt={`${city} example`}
-                    width={600}
-                    height={400}
-                    style={{ 
-                      width: '100%', 
-                      height: 'auto', 
-                      objectFit: 'cover', 
-                      borderRadius: '8px',
-                    }}
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Box>
-
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          ))}
         </Box>
       </Box>
-    </Container>
+
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+    </Box>
   );
 }

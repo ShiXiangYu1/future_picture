@@ -3,9 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Typography, List, ListItem, ListItemText } from '@mui/material';
-import dynamic from 'next/dynamic';
-
-const CloudUploadIcon = dynamic(() => import('@mui/icons-material/CloudUpload'), { ssr: false });
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_FILE_TYPES = {
@@ -17,9 +15,11 @@ const ACCEPTED_FILE_TYPES = {
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
+  accept?: string;
+  maxFiles?: number;
 }
 
-export default function FileUpload({ onFilesSelected }: FileUploadProps) {
+export default function FileUpload({ onFilesSelected, accept, maxFiles = 1 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -39,10 +39,10 @@ export default function FileUpload({ onFilesSelected }: FileUploadProps) {
     onFilesSelected(validFiles);
   }, [onFilesSelected]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: ACCEPTED_FILE_TYPES,
-    maxSize: MAX_FILE_SIZE
+    accept: accept ? { [accept]: [] } : undefined,
+    maxFiles
   });
 
   return (
@@ -50,18 +50,20 @@ export default function FileUpload({ onFilesSelected }: FileUploadProps) {
       <Box
         {...getRootProps()}
         sx={{
-          border: '2px dashed #ccc',
+          border: '2px dashed',
+          borderColor: 'grey.300',
           borderRadius: 2,
           p: 3,
           textAlign: 'center',
           cursor: 'pointer',
+          bgcolor: isDragActive ? 'grey.100' : 'background.paper',
           '&:hover': {
-            borderColor: 'primary.main',
-          },
+            bgcolor: 'grey.50'
+          }
         }}
       >
         <input {...getInputProps()} />
-        <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+        <Box component={CloudUploadIcon} sx={{ fontSize: 48, color: 'text.secondary' }} />
         <Typography variant="h6" sx={{ mt: 2 }}>
           {isDragActive ? '拖放文件到这里 ...' : '拖放文件到这里, 或者点击选择文件'}
         </Typography>

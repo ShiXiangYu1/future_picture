@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, LinearProgress, Box, Typography } from '@mui/material';
-import dynamic from 'next/dynamic';
-
-const CloudUploadIcon = dynamic(() => import('@mui/icons-material/CloudUpload'), { ssr: false });
+import { Button, CircularProgress, Box } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 interface ConvertButtonProps {
   files: File[];
@@ -18,22 +16,16 @@ export default function ConvertButton({ files, selectedFormat, onConversionCompl
 
   const handleConvert = async () => {
     if (files.length === 0) {
-      console.log('Client: No files selected');
-      alert('请先上传文件');
+      alert('请先选择文件');
       return;
     }
-
-    console.log('Client: Starting conversion');
-    console.log('Client: Selected format:', selectedFormat);
-    console.log('Client: Number of files:', files.length);
 
     setIsConverting(true);
     setProgress(0);
 
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
-      console.log('Client: Appending file:', file.name, 'Size:', file.size, 'bytes');
+    files.forEach(file => {
+      formData.append('file', file);
     });
     formData.append('format', selectedFormat);
 
@@ -78,24 +70,28 @@ export default function ConvertButton({ files, selectedFormat, onConversionCompl
   };
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Button
         variant="contained"
         color="primary"
-        startIcon={<CloudUploadIcon />}
         onClick={handleConvert}
-        disabled={isConverting}
-        fullWidth
+        disabled={isConverting || files.length === 0}
+        startIcon={<CloudUploadIcon />}
+        sx={{ mt: 2 }}
       >
         {isConverting ? '转换中...' : '开始转换'}
       </Button>
       {isConverting && (
-        <Box sx={{ width: '100%', mt: 2 }}>
-          <LinearProgress variant="determinate" value={progress} />
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-            {`${Math.round(progress)}%`}
-          </Typography>
-        </Box>
+        <CircularProgress
+          size={24}
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            marginTop: '-12px',
+            marginLeft: '-12px',
+          }}
+        />
       )}
     </Box>
   );

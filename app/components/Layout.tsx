@@ -13,7 +13,6 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LaunchIcon from '@mui/icons-material/Launch';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Script from 'next/script';
 
 const drawerWidth = 240;
 const menuItems = [
@@ -189,16 +188,48 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </List>
       
       <Box sx={{ p: 2, mt: 2 }}>
-        <Script 
-          src="https://apis.google.com/js/platform.js" 
-          strategy="lazyOnload"
-        />
-        <div
-          className="g-ytsubscribe"
-          data-channelid="UCzbSuf_A_D8dARJ33HzoDew"
-          data-layout="full"
-          data-count="default"
-        />
+        <Button
+          variant="contained"
+          href="https://space.bilibili.com/3493114559858979?spm_id_from=333.788.0.0"
+          target="_blank"
+          rel="noopener noreferrer"
+          startIcon={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Image 
+                src="/images/favicon-32x32.png" 
+                alt="Favicon" 
+                width={32} 
+                height={32} 
+                style={{ 
+                  flexShrink: 0,
+                  objectFit: 'contain'
+                }}
+              />
+              <Image 
+                src="/images/bilibili-icon.svg" 
+                alt="Bilibili" 
+                width={24} 
+                height={24} 
+              />
+            </Box>
+          }
+          sx={{
+            width: '100%',
+            height: '48px',
+            backgroundColor: '#00a1d6',
+            '&:hover': {
+              backgroundColor: '#00b5e5',
+            },
+            borderRadius: '24px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            textTransform: 'none',
+            fontWeight: 'normal',
+            fontSize: '1rem',
+            padding: '8px 20px',
+          }}
+        >
+          关注 B 站
+        </Button>
       </Box>
     </Box>
   );

@@ -1,66 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fetch from 'node-fetch';
-import FormData from 'form-data';
+import { RemoveBgError, removeBackgroundFromImageFile } from "remove.bg";
 
-const DEFAULT_REMOVE_BG_API_KEY = process.env.REMOVE_BG_API_KEY;
+// 使用 Redis 或其他数据库来存储使用次数
+let monthlyUsage = 0;
+let lastResetDate = new Date();
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('Received request to remove background');
-    
-    const formData = await req.formData();
-    const image = formData.get('image') as File;
-    const userApiKey = formData.get('api_key') as string;
-
-    if (!image) {
-      console.error('No image file received');
-      return NextResponse.json({ error: '缺少图像' }, { status: 400 });
+    // 检查是否需要重置计数器（每月1号重置）
+    const now = new Date();
+    if (now.getMonth() !== lastResetDate.getMonth()) {
+      monthlyUsage = 0;
+      lastResetDate = now;
     }
 
-    console.log('Image file received, size:', image.size, 'type:', image.type);
+    // 检查使用次数
+    if (monthlyUsage >= 50) {
+      return NextResponse.json({
+        error: '已达到本月免费使用次数限制',
+        message: '您可以：\n1. 等待下月重置\n2. 使用自己的 API Key\n3. 升级到付费版本',
+        link: 'https://www.remove.bg/pricing'
+      }, { status: 429 });
+    }
+
+    const formData = await req.formData();
+    const image = formData.get('image') as File;
+    const apiKey = formData.get('api_key') as string;
+
+    if (!image) {
+      return NextResponse.json({ error: '未找到图片' }, { status: 400 });
+    }
 
     const imageBuffer = Buffer.from(await image.arrayBuffer());
 
-    // 创建一个新的 FormData 对象来发送到 remove.bg API
-    const removeBgFormData = new FormData();
-    removeBgFormData.append('image_file', imageBuffer, {
-      filename: 'image.png',
-      contentType: image.type,
-    });
+    try {
+      const result = await removeBackgroundFromImageFile({
+        file: imageBuffer,
+        apiKey: apiKey || process.env.REMOVE_BG_API_KEY || '',
+        size: 'regular',
+        type: 'auto',
+      });
 
-    // 使用用户提供的 API key，如果没有则使用默认的
-    const apiKey = userApiKey || DEFAULT_REMOVE_BG_API_KEY;
+      // 增加使用次数
+      monthlyUsage++;
 
-    if (!apiKey) {
-      console.error('No API key available');
-      return NextResponse.json({ error: '缺少 API key' }, { status: 400 });
+      return new NextResponse(result.base64img, {
+        headers: {
+          'Content-Type': 'image/png',
+        },
+      });
+    } catch (error) {
+      if (error instanceof RemoveBgError) {
+        console.error('remove.bg error:', error);
+        // API 限制错误
+        if (error.statusCode === 402) {
+          return NextResponse.json({
+            error: 'API 使用次数已达上限',
+            message: '建议：\n1. 使用自己的 API Key\n2. 升级到付费版本以获得更多次数',
+            link: 'https://www.remove.bg/pricing'
+          }, { status: 402 });
+        }
+      }
+      throw error;
     }
-
-    console.log('Sending request to remove.bg API');
-    const removeBgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-Api-Key': apiKey,
-      },
-      body: removeBgFormData,
-    });
-
-    if (!removeBgResponse.ok) {
-      const errorText = await removeBgResponse.text();
-      console.error('remove.bg API error:', removeBgResponse.status, errorText);
-      throw new Error(`Failed to remove background: ${removeBgResponse.status} ${errorText}`);
-    }
-
-    console.log('Background removed successfully');
-    const removedBgImage = await removeBgResponse.buffer();
-
-    return new NextResponse(removedBgImage, {
-      headers: {
-        'Content-Type': 'image/png',
-      },
-    });
   } catch (error) {
     console.error('Error processing image:', error);
-    return NextResponse.json({ error: '处理图像时出错: ' + (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: '处理图片时出错' }, { status: 500 });
   }
 }

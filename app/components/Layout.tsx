@@ -244,7 +244,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Box sx={{ flexGrow: 1 }} />
             <IconButton
               color="inherit"
-              href="https://www.bookai.top/"
+              href="https://www.pugongyingai.icu/"
               target="_blank"
               rel="noopener noreferrer"
               sx={{

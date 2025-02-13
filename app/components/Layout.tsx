@@ -95,20 +95,20 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#3f51b5',
+      main: '#2c3e50',
     },
     secondary: {
-      main: '#f50057',
+      main: '#3498db',
     },
     background: {
-      default: '#f5f5f5',
+      default: '#f0f7ff',
     },
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f0f0f0)',
+          backgroundImage: 'linear-gradient(to bottom right, #ffffff, #f0f7ff)',
         },
       },
     },
@@ -243,7 +243,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           position="fixed" 
           sx={{ 
             zIndex: (theme) => theme.zIndex.drawer + 1,
-            backgroundImage: 'linear-gradient(to right, #3f51b5, #5c6bc0)',
+            backgroundImage: 'linear-gradient(to right, #ff7e5f, #feb47b)',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
@@ -259,7 +259,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </IconButton>
             <Link href="/" passHref legacyBehavior>
               <a style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-                <Image src="/image-tools-icon.svg" alt="Image Tools Icon" width={40} height={40} />
+                <Image 
+                  src="/images/android-chrome-512x512.png" 
+                  alt="Future Picture Icon" 
+                  width={40} 
+                  height={40} 
+                  style={{
+                    borderRadius: '8px',
+                  }}
+                />
                 <Typography 
                   variant="h6" 
                   noWrap 
@@ -267,10 +275,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   sx={{ 
                     fontWeight: 'bold',
                     ml: 2,
-                    display: { xs: 'none', sm: 'inline' }
+                    display: { xs: 'none', sm: 'inline' },
+                    background: 'linear-gradient(45deg, #ffffff 30%, #fff5f0 90%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  图像魔方 img2046.com
+                  未来图方 futurepicture.help
                 </Typography>
               </a>
             </Link>

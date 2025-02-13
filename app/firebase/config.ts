@@ -1,5 +1,8 @@
 // 仅在需要时初始化 Firebase
+import { getFirestore } from 'firebase/firestore';
+
 let app: any = null;
+let db: any = null;
 
 if (typeof window !== 'undefined') {
   const { initializeApp } = require('firebase/app');
@@ -14,6 +17,8 @@ if (typeof window !== 'undefined') {
   };
 
   app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
 }
 
+export { db };
 export default app;

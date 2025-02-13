@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Paper, Button, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Typography, Grid, Paper, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -81,14 +81,46 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>图像魔方 - 一站式在线图像处理工具 | img2046.com</title>
-        <meta name="description" content="图像魔方提供多种免费在线图像处理工具,包括AI文生图、图片压缩、调整大小、格式转换等。轻松处理您的图片,提升工作效率。" />
+        <title>未来图方 - 一站式在线图像处理工具 | futurepicture.help</title>
+        <meta name="description" content="未来图方提供多种免费在线图像处理工具,包括AI文生图、图片压缩、调整大小、格式转换等。轻松处理您的图片,提升工作效率。" />
       </Head>
-      <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: '40px 20px' }}>
-        <Typography variant="h1" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: '2rem', md: '3rem' }, fontWeight: 'bold', mb: 4 }}>
-          图像魔方：一站式图像处理工具
+      <Box sx={{ 
+        maxWidth: 1200, 
+        margin: '0 auto', 
+        padding: '40px 20px',
+        background: 'linear-gradient(135deg, #f0f7ff 0%, #fff5f5 50%, #fff9f0 100%)',
+        borderRadius: '20px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+      }}>
+        <Typography 
+          variant="h1" 
+          component="h1" 
+          gutterBottom 
+          align="center" 
+          sx={{ 
+            fontSize: { xs: '2rem', md: '3rem' }, 
+            fontWeight: 'bold', 
+            mb: 4,
+            background: 'linear-gradient(45deg, #2c3e50 30%, #3498db 90%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          未来图方：一站式图像处理工具
         </Typography>
-        <Typography variant="h2" component="h2" gutterBottom align="center" sx={{ fontSize: { xs: '1.2rem', md: '1.5rem' }, mb: 6 }}>
+        <Typography 
+          variant="h2" 
+          component="h2" 
+          gutterBottom 
+          align="center" 
+          sx={{ 
+            fontSize: { xs: '1.2rem', md: '1.5rem' }, 
+            mb: 6,
+            color: '#666',
+            fontWeight: 'light'
+          }}
+        >
           轻松处理您的图片，提升工作效率
         </Typography>
         <Grid container spacing={4}>
@@ -101,17 +133,46 @@ export default function Home() {
                   display: 'flex', 
                   flexDirection: 'column', 
                   alignItems: 'center', 
-                  transition: '0.3s', 
+                  transition: 'all 0.3s ease',
+                  background: 'linear-gradient(145deg, #ffffff, #fff8f0)',
+                  borderRadius: '15px',
+                  border: '1px solid rgba(255,255,255,0.8)',
                   '&:hover': { 
                     transform: 'translateY(-5px)',
-                    boxShadow: 6
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                    background: 'linear-gradient(145deg, #fff8f0, #ffffff)'
                   } 
                 }}>
-                  <Image src={tool.icon} alt={tool.name} width={64} height={64} />
-                  <Typography variant="h6" component="h3" align="center" sx={{ mt: 2, mb: 1 }}>
+                  <Box sx={{
+                    p: 2,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #fff5f5 0%, #fff9f0 100%)',
+                    mb: 2
+                  }}>
+                    <Image src={tool.icon} alt={tool.name} width={64} height={64} />
+                  </Box>
+                  <Typography 
+                    variant="h6" 
+                    component="h3" 
+                    align="center" 
+                    sx={{ 
+                      mt: 2, 
+                      mb: 1,
+                      color: '#2c3e50',
+                      fontWeight: '600'
+                    }}
+                  >
                     {tool.name}
                   </Typography>
-                  <Typography variant="body2" align="center" sx={{ flexGrow: 1, color: 'text.secondary' }}>
+                  <Typography 
+                    variant="body2" 
+                    align="center" 
+                    sx={{ 
+                      flexGrow: 1, 
+                      color: '#666',
+                      lineHeight: 1.6
+                    }}
+                  >
                     {tool.description}
                   </Typography>
                 </Paper>
@@ -120,20 +181,62 @@ export default function Home() {
           ))}
         </Grid>
         <Box sx={{ mt: 8 }}>
-          <Typography variant="h3" component="h3" gutterBottom sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, textAlign: 'center', mb: 4 }}>
+          <Typography 
+            variant="h3" 
+            component="h3" 
+            gutterBottom 
+            sx={{ 
+              fontSize: { xs: '1.5rem', md: '2rem' }, 
+              textAlign: 'center', 
+              mb: 4,
+              color: '#2c3e50',
+              fontWeight: '600'
+            }}
+          >
             常见问题
           </Typography>
           {faqs.map((faq, index) => (
-            <Accordion key={index} sx={{ mb: 2 }}>
+            <Accordion 
+              key={index} 
+              sx={{ 
+                mb: 2,
+                background: 'linear-gradient(145deg, #ffffff, #fff8f0)',
+                borderRadius: '10px !important',
+                border: '1px solid rgba(255,255,255,0.8)',
+                '&:before': {
+                  display: 'none'
+                },
+                '&.Mui-expanded': {
+                  margin: '0 0 16px 0',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+                }
+              }}
+            >
               <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
+                expandIcon={<ExpandMoreIcon sx={{ color: '#666' }} />}
                 aria-controls={`panel${index}a-content`}
                 id={`panel${index}a-header`}
+                sx={{
+                  '&.Mui-expanded': {
+                    minHeight: '48px',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)'
+                  }
+                }}
               >
-                <Typography sx={{ fontWeight: 'bold' }}>{faq.question}</Typography>
+                <Typography sx={{ 
+                  fontWeight: '600',
+                  color: '#2c3e50'
+                }}>
+                  {faq.question}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography>{faq.answer}</Typography>
+                <Typography sx={{ 
+                  color: '#666',
+                  lineHeight: 1.6
+                }}>
+                  {faq.answer}
+                </Typography>
               </AccordionDetails>
             </Accordion>
           ))}

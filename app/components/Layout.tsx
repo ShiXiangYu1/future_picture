@@ -263,7 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </IconButton>
             <IconButton
               color="inherit"
-              href="https://github.com/alchaincyf/img2046"
+              href="https://github.com/ShiXiangYu1/future_picture"
               target="_blank"
               rel="noopener noreferrer"
               sx={{

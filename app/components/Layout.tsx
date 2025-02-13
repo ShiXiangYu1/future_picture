@@ -198,34 +198,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Image 
                 src="/images/favicon-32x32.png" 
                 alt="Favicon" 
-                width={32} 
-                height={32} 
+                width={28} 
+                height={28} 
                 style={{ 
                   flexShrink: 0,
                   objectFit: 'contain'
                 }}
+                priority
               />
               <Image 
                 src="/images/bilibili-icon.svg" 
                 alt="Bilibili" 
-                width={24} 
-                height={24} 
+                width={22} 
+                height={22} 
+                priority
               />
             </Box>
           }
           sx={{
             width: '100%',
-            height: '48px',
+            height: '42px',
             backgroundColor: '#00a1d6',
             '&:hover': {
               backgroundColor: '#00b5e5',
             },
-            borderRadius: '24px',
+            borderRadius: '21px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             textTransform: 'none',
             fontWeight: 'normal',
-            fontSize: '1rem',
-            padding: '8px 20px',
+            fontSize: '0.95rem',
+            padding: '6px 16px',
           }}
         >
           关注 B 站
